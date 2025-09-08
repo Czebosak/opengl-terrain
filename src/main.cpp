@@ -140,13 +140,14 @@ int main(void) {
     Texture cube_texture("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/textures/cube.png");
     Shader cube_shader("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/shaded.glsl");
     cube_shader.bind();
-    cube_shader.set_uniform_v4("u_color", 1.0f, 1.0f, 1.0f, 1.0f);
-    cube_shader.set_uniform_1i("u_texture", 0);
+    cube_shader.set_uniform_1i("u_material.diffuse", 0);
+    cube_shader.set_uniform_v3("u_material.specular", 1.0f, 1.0f, 1.0f);
+    cube_shader.set_uniform_1f("u_material.shininess", 32.0f);
     cube_shader.set_uniform_mat4f("u_model", cube_transform);
     Mesh3D cube(std::move(vertices), std::move(indices));
 
-    cube_shader.set_uniform_v3("u_light_pos", 0.4f, 1.0f, -20.4f);
-    cube_shader.set_uniform_v3("u_light_color", 1.0f, 1.0f, 0.9f);
+    cube_shader.set_uniform_v3("u_sun.direction", -1.0f, -1.0f, 0.5f);
+    cube_shader.set_uniform_v3("u_sun.diffuse", 1.0f, 1.0f, 0.9f);
 
     glm::mat4 vp;
     double delta, last_frame = 0.0f;
