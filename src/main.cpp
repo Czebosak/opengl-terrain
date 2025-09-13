@@ -9,6 +9,7 @@
 #include <mesh3d.hpp>
 #include <texture.hpp>
 
+#include <heightmap_terrain.hpp>
 #include <player_camera.hpp>
 
 #include <glm/glm.hpp>
@@ -60,8 +61,8 @@ GLFWwindow* setup_window_and_context(u32 width, u32 height, const char* title) {
     gl_call(glEnable(GL_BLEND));
     gl_call(glEnable(GL_DEPTH_TEST));
     gl_call(glEnable(GL_MULTISAMPLE));
-    gl_call(glEnable(GL_CULL_FACE));
-    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    //gl_call(glEnable(GL_CULL_FACE));
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     return window;
 }
@@ -87,7 +88,7 @@ int main(void) {
 
     glm::mat4 cube_transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -20.0f));
     Texture cube_texture("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/textures/cube.png");
-    Shader cube_shader("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/shaded.glsl");
+    Shader cube_shader("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/shaders/shaded.glsl");
     cube_shader.bind();
     cube_shader.set_uniform_1i("u_material.diffuse", 0);
     //cube_shader.set_uniform_v3("u_material.specular", 1.0f, 1.0f, 1.0f);
@@ -98,10 +99,12 @@ int main(void) {
     cube_shader.set_uniform_v3("u_sun.direction", -1.0f, -1.0f, 0.5f);
     cube_shader.set_uniform_v3("u_sun.diffuse", 1.0f, 1.0f, 0.9f);
 
-    Shader plane_shader("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/basic.glsl");
+    Shader plane_shader("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/shaders/basic.glsl");
     plane_shader.bind();
     plane_shader.set_uniform_v4("u_color", 0.7f, 0.7f, 0.7f, 1.0f);
-    Mesh3D plane = Mesh3D::plane(glm::vec2(10.0f, 10.0f), glm::ivec2(4));
+    Mesh3D plane = Mesh3D::plane(glm::vec2(10.0f, 10.0f), glm::ivec2(10));
+
+    HeightMapTerrain terrain(glm::vec2(10.0), glm::ivec2(10));
 
     glm::mat4 vp;
     double delta, last_frame = 0.0f;

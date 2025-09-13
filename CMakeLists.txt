@@ -11,5 +11,6 @@ add_executable(Terrain ${MY_SOURCES})
 
 target_include_directories(Terrain PRIVATE "src")
 target_include_directories(Terrain PRIVATE "external/haygl/src")
+target_include_directories(Terrain PRIVATE "external/fastnoiselite")
 
 target_link_libraries(Terrain PRIVATE HayGL)
