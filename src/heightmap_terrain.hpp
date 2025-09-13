@@ -14,17 +14,22 @@ private:
     Shader shader;
 
     struct TerrainVertex {
-        glm::vec3 position;
-        u16 yaw;
-        u16 pitch;
+        float height;
+        u32 packed_yaw_and_pitch;
     };
 
     struct TerrainMesh {
         std::vector<TerrainVertex> vertices;
-        std::vector<u32> indices;
+        std::vector<u8> indices;
     };
+
+    TerrainMesh mesh;
 
     TerrainMesh generate_plane(glm::vec2 size, glm::vec2 subdivide = glm::ivec2(0));
 public:
     HeightMapTerrain(glm::vec2 size, glm::vec2 subdivide);
+
+    void bind() const;
+
+    void draw(const glm::mat4& mvp);
 };

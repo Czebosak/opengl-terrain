@@ -61,8 +61,8 @@ GLFWwindow* setup_window_and_context(u32 width, u32 height, const char* title) {
     gl_call(glEnable(GL_BLEND));
     gl_call(glEnable(GL_DEPTH_TEST));
     gl_call(glEnable(GL_MULTISAMPLE));
-    //gl_call(glEnable(GL_CULL_FACE));
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    gl_call(glEnable(GL_CULL_FACE));
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     return window;
 }
@@ -99,10 +99,10 @@ int main(void) {
     cube_shader.set_uniform_v3("u_sun.direction", -1.0f, -1.0f, 0.5f);
     cube_shader.set_uniform_v3("u_sun.diffuse", 1.0f, 1.0f, 0.9f);
 
-    Shader plane_shader("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/shaders/basic.glsl");
+    /* Shader plane_shader("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/shaders/basic.glsl");
     plane_shader.bind();
     plane_shader.set_uniform_v4("u_color", 0.7f, 0.7f, 0.7f, 1.0f);
-    Mesh3D plane = Mesh3D::plane(glm::vec2(10.0f, 10.0f), glm::ivec2(10));
+    Mesh3D plane = Mesh3D::plane(glm::vec2(10.0f, 10.0f), glm::ivec2(10)); */
 
     HeightMapTerrain terrain(glm::vec2(10.0), glm::ivec2(10));
 
@@ -129,13 +129,11 @@ int main(void) {
         cube.bind();
         gl_call(glDrawElements(GL_TRIANGLES, cube.get_index_buffer().get_count(), GL_UNSIGNED_INT, nullptr));
 
-        plane_shader.bind();
-        plane_shader.set_mvp(vp);
-        plane.bind();
-        gl_call(glDrawElements(GL_TRIANGLE_STRIP, plane.get_index_buffer().get_count(), GL_UNSIGNED_INT, nullptr));
+        terrain.bind();
+        terrain.draw(vp);
 
         /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(window); // Freeze here
 
         /* Poll for and process events */
         glfwPollEvents();
