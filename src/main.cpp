@@ -33,7 +33,7 @@ GLFWwindow* setup_window_and_context(u32 width, u32 height, const char* title) {
         return nullptr;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
@@ -104,7 +104,7 @@ int main(void) {
     plane_shader.set_uniform_v4("u_color", 0.7f, 0.7f, 0.7f, 1.0f);
     Mesh3D plane = Mesh3D::plane(glm::vec2(10.0f, 10.0f), glm::ivec2(10)); */
 
-    HeightMapTerrain terrain(glm::vec2(10.0), glm::ivec2(10));
+    HeightMapTerrain terrain(glm::vec2(10.0), glm::uvec2(10));
 
     glm::mat4 vp;
     double delta, last_frame = 0.0f;
@@ -129,7 +129,6 @@ int main(void) {
         cube.bind();
         gl_call(glDrawElements(GL_TRIANGLES, cube.get_index_buffer().get_count(), GL_UNSIGNED_INT, nullptr));
 
-        terrain.bind();
         terrain.draw(vp);
 
         /* Swap front and back buffers */
