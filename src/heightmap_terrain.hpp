@@ -8,6 +8,8 @@
 #include <vector>
 #include <bitset>
 
+#include <fastnoiselite.h>
+
 #include <glm/glm.hpp>
 
 class HeightMapChunkManager {
@@ -17,9 +19,14 @@ private:
     u32 chunk_index_count;
     u32 chunk_size;
 
+    u32 chunk_column_size;
+    u32 chunk_row_size;
+
+    FastNoiseLite noise;    
+
     struct TerrainVertex {
         float height;
-        u32 packed_yaw_and_pitch;
+        u32 normal_components;
     };
 
     struct ChunkMesh {
@@ -35,12 +42,14 @@ private:
     size_t reserve_chunk();
     std::vector<u16> get_used_chunk_indeces();
 
+    std::array<int, 4> get_neighboring_vertices(int x, int y);
+
     //void add_chunk(glm::vec<2, u16> chunk_pos);
-    ChunkMesh generate_chunk(glm::vec2 size, glm::uvec2 subdivide);
+    ChunkMesh generate_chunk(glm::vec2 size, glm::uvec2 subdivide, glm::vec<2, u16> position);
 public:
     HeightMapChunkManager() {}
 
-    HeightMapChunkManager(int chunk_count, u32 chunk_vertex_count, u32 chunk_index_count);
+    HeightMapChunkManager(int chunk_count, glm::uvec2 subdivide, u32 chunk_index_count);
 
     size_t generate_draw_commands();
     void add_chunk(glm::vec<2, u16> chunk_pos);
