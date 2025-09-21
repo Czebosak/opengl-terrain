@@ -101,24 +101,7 @@ HeightMapChunkManager::HeightMapChunkManager(int chunk_count, glm::uvec2 subdivi
 
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
     noise.SetFrequency(0.05);
-    //noise.SetFrequency(0.01);
 }
-
-/* std::array<int, 4> HeightMapChunkManager::get_neighboring_vertices(int x, int y) {
-    std::array<int, 4> indices = {
-        (x - 1) * int(chunk_column_size) + y,
-        (x + 1) * int(chunk_column_size) + y,
-        (x * int(chunk_column_size)) + y - 1,
-        (x * int(chunk_column_size)) + y + 1
-    };
-
-    if (x == 0)                     indices[0] = -1;
-    if (x == chunk_column_size - 1) indices[1] = -1;
-    if (y == 0)                     indices[2] = -1;
-    if (y == chunk_row_size - 1)    indices[3] = -1;
-
-    return indices;
-} */
 
 std::array<int, 4> HeightMapChunkManager::get_neighboring_vertices(int x, int y) {
     std::array<int, 4> indices = {
@@ -136,41 +119,8 @@ std::array<int, 4> HeightMapChunkManager::get_neighboring_vertices(int x, int y)
     return indices;
 }
 
-/* std::vector<int> HeightMapChunkManager::get_neighboring_vertices(int x, int y) {
-    std::vector<int> indices;
-    indices.reserve(4);
-
-    {
-        (x - 1) * int(chunk_column_size) + y,
-        (x + 1) * int(chunk_column_size) + y,
-        (x * int(chunk_column_size)) + y - 1,
-        (x * int(chunk_column_size)) + y + 1
-    };
-
-    if (x == 0)                     indices.emplace_back((x - 1) * int(chunk_column_size) + y);
-    if (x == chunk_column_size - 1) indices.emplace_back((x + 1) * int(chunk_column_size) + y);
-    if (y == 0)                     indices[2] = -1;
-    if (y == chunk_row_size - 1)    indices[3] = -1;
-
-    return indices;
-} */
-
 glm::vec3 edge_to_direction(int neighbor_vertex_i, float neighbor_height, float current_height) {
     glm::vec3 relative_position;
-    /* switch (neighbor_vertex_i) {
-    case 0:
-        relative_position = glm::vec3(-1.0f, 0.0f,  0.0f);
-        break;
-    case 1:
-        relative_position = glm::vec3( 1.0f, 0.0f,  0.0f);
-        break;
-    case 2:
-        relative_position = glm::vec3( 0.0f, 0.0f, -1.0f);
-        break;
-    case 3:
-        relative_position = glm::vec3( 0.0f, 0.0f,  1.0f);
-        break;
-    } */
     switch (neighbor_vertex_i) {
     case 0:
         relative_position = glm::vec3( 1.0f, 0.0f,  0.0f);
@@ -191,7 +141,7 @@ glm::vec3 edge_to_direction(int neighbor_vertex_i, float neighbor_height, float 
     return glm::normalize(relative_position);
 }
 
-HeightMapChunkManager::ChunkMesh HeightMapChunkManager::generate_chunk(glm::vec2 size, glm::uvec2 subdivide, glm::vec<2, u16> position) {
+HeightMapChunkManager::ChunkMesh HeightMapChunkManager::generate_chunk(glm::vec2 size, glm::uvec2 subdivide, glm::vec<2, i16> position) {
     std::vector<TerrainVertex> vertices;
     std::vector<u8> indices;
 
@@ -264,7 +214,7 @@ size_t HeightMapChunkManager::reserve_chunk() {
     return -1;
 }
 
-std::vector<u16> HeightMapChunkManager::get_used_chunk_indeces() {
+std::vector<u16> HeightMapChunkManager::get_used_chunk_indeces() const {
     std::vector<u16> used_chunks;
     used_chunks.reserve(chunk_count);
 
@@ -279,7 +229,7 @@ std::vector<u16> HeightMapChunkManager::get_used_chunk_indeces() {
     return used_chunks;
 }
 
-void HeightMapChunkManager::add_chunk(glm::vec<2, u16> chunk_pos) {
+void HeightMapChunkManager::add_chunk(glm::vec<2, i16> chunk_pos) {
     size_t idx = reserve_chunk();
 
     ChunkMesh mesh = generate_chunk(glm::vec2(10.0f), glm::uvec2(10), chunk_pos);
@@ -313,6 +263,22 @@ size_t HeightMapChunkManager::generate_draw_commands() {
     chunk_offset_buffer.set_data(chunk_offsets.data(), chunk_offsets.size() * sizeof(glm::vec<2, u16>));
     command_buffer.set_data(commands.data(), commands.size() * sizeof(DrawElementsIndirectCommand));
     return commands.size();
+}
+
+u16 HeightMapChunkManager::get_chunk_id_by_pos(glm::vec<2, i16> chunk_pos) const {
+    std::vector<u16> used_indeces = get_used_chunk_indeces();
+    for (u16 i : used_indeces) {
+        if (chunk_offsets[i] == chunk_pos) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+u16 HeightMapChunkManager::get_chunk_id_by_world_pos(glm::vec2 world_pos) const {
+    glm::vec<2, i16> chunk_pos;
+    chunk_pos.x = world_pos.x / chunk_column_size;
+    chunk_pos.y = world_pos.y / chunk_row_size;
 }
 
 void HeightMapChunkManager::bind() const {
