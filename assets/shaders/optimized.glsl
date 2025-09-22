@@ -72,8 +72,17 @@ struct Sun {
     vec3 diffuse;
 };
 
+struct Flashlight {
+    vec3 position;
+    vec3 direction;
+
+    float cut_off;
+    float outer_cut_off;
+};
+
 uniform Material material;
 uniform Sun sun;
+uniform Flashlight flashlight;
 uniform vec3 view_pos;
 
 void main() {
@@ -95,7 +104,22 @@ void main() {
 
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
     vec3 specular = sun.diffuse * (specular_strength * spec);
-    
+
     vec3 result = ambient + diffuse * material.color + specular;
+
+    // Flashlight
+    vec3 to_frag = normalize(frag_pos - flashlight.position);
+    float theta = dot(to_frag, normalize(flashlight.direction));
+
+    if (theta > flashlight.outer_cut_off) {
+        float dist = length(frag_pos - flashlight.position);
+        float attenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
+
+        float epsilon   = flashlight.cut_off - flashlight.outer_cut_off;
+        float intensity = clamp((theta - flashlight.outer_cut_off) / epsilon, 0.0, 1.0);
+
+        result += vec3(1.0) * material.color * attenuation * intensity;
+    }
+
     frag_color = vec4(result, 1.0);
 }

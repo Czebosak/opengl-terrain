@@ -106,6 +106,11 @@ int main(void) {
 
     HeightMapTerrain terrain(glm::vec2(10.0), glm::uvec2(10));
 
+    Shader& terrain_shader = terrain.get_shader();
+
+    terrain_shader.set_uniform_1f("flashlight.cut_off", glm::cos(glm::radians(7.0f)));
+    terrain_shader.set_uniform_1f("flashlight.outer_cut_off", glm::cos(glm::radians(12.5f)));
+
     glm::mat4 vp;
     double delta, last_frame = 0.0f;
     /* Loop until the user closes the window */
@@ -121,6 +126,12 @@ int main(void) {
         player_camera.update(delta, window, mouse_delta);
 
         vp = player_camera.matrix();
+
+        {
+            glm::vec3 camera_forward = player_camera.forward();
+            terrain_shader.set_uniform_v3("flashlight.position", player_camera.position.x, player_camera.position.y, player_camera.position.z);
+            terrain_shader.set_uniform_v3("flashlight.direction", camera_forward.x, camera_forward.y, camera_forward.z);
+        }
 
         cube_texture.bind();
         cube_shader.bind();

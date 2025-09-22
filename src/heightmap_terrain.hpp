@@ -79,7 +79,7 @@ private:
 public:
     HeightMapTerrain(glm::vec2 size, glm::uvec2 subdivide);
 
-    float get_height(glm::vec2 position) const;
-
     void draw(const glm::mat4& mvp);
+
+    inline Shader& get_shader() { return shader; }
 };

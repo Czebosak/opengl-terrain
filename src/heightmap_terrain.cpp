@@ -100,7 +100,7 @@ HeightMapChunkManager::HeightMapChunkManager(int chunk_count, glm::uvec2 subdivi
     chunk_offsets.resize(chunk_count);
 
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-    noise.SetFrequency(0.05);
+    noise.SetFrequency(0.05f);
 }
 
 std::array<int, 4> HeightMapChunkManager::get_neighboring_vertices(int x, int y) {
