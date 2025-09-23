@@ -19,7 +19,7 @@ HeightMapTerrain::HeightMapTerrain(glm::vec2 size, glm::uvec2 subdivide) : size(
 
     glm::vec2 quad_size = size / glm::vec2(subdivide);
 
-    chunk_manager = std::move(HeightMapChunkManager(128, subdivide, index_buffer.get_count()));
+    chunk_manager = std::move(HeightMapChunkManager(1024, subdivide, index_buffer.get_count()));
     vertex_array.bind();
     chunk_manager.bind();
     vertex_array.add_buffer(chunk_manager.get_chunk_buffer(), layout);
@@ -38,8 +38,8 @@ HeightMapTerrain::HeightMapTerrain(glm::vec2 size, glm::uvec2 subdivide) : size(
 
     shader.set_uniform_mat4f("model", glm::mat4(1.0f));
 
-    for (int x = 0; x < 11; x++) {
-        for (int y = 0; y < 11; y++) {
+    for (int x = 0; x < 32; x++) {
+        for (int y = 0; y < 32; y++) {
             chunk_manager.add_chunk(glm::vec<2, u16>(x, y));
         }
     }
@@ -279,6 +279,7 @@ u16 HeightMapChunkManager::get_chunk_id_by_world_pos(glm::vec2 world_pos) const 
     glm::vec<2, i16> chunk_pos;
     chunk_pos.x = world_pos.x / chunk_column_size;
     chunk_pos.y = world_pos.y / chunk_row_size;
+    return 0;
 }
 
 void HeightMapChunkManager::bind() const {

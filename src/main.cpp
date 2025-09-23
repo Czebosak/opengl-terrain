@@ -15,6 +15,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <miniaudio.h>
+
 glm::vec2 mouse_delta(0.0f);
 
 void mouse_move_callback(GLFWwindow* window, double x_pos, double y_pos) {
@@ -70,6 +72,14 @@ GLFWwindow* setup_window_and_context(u32 width, u32 height, const char* title) {
 int main(void) {
     GLFWwindow* window = setup_window_and_context(1920, 1080, "Example");
     if (!window) {
+        return -1;
+    }
+    
+    ma_result result;
+    ma_engine engine;
+    
+    result = ma_engine_init(NULL, &engine);
+    if (result != MA_SUCCESS) {
         return -1;
     }
 
@@ -143,11 +153,13 @@ int main(void) {
         terrain.draw(vp);
 
         /* Swap front and back buffers */
-        glfwSwapBuffers(window); // Freeze here
+        glfwSwapBuffers(window);
 
         /* Poll for and process events */
         glfwPollEvents();
     }
+
+    ma_engine_uninit(&engine);
 
     glfwTerminate();
     return 0;
