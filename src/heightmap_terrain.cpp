@@ -76,6 +76,22 @@ void HeightMapTerrain::bind() const {
     chunk_manager.bind();
 }
 
+u16 HeightMapTerrain::get_chunk_id_by_pos(glm::vec<2, i16> chunk_pos) const {
+    return chunk_manager.get_chunk_id_by_pos(chunk_pos);
+}
+
+u16 HeightMapTerrain::get_chunk_id_by_world_pos(glm::vec2 world_pos) const {
+    return chunk_manager.get_chunk_id_by_world_pos(world_pos);
+}
+
+float HeightMapTerrain::get_vertex_height_in_chunk_by_pos(u16 chunk_index, int x, int y) {
+    return chunk_manager.get_vertex_height_in_chunk_by_pos(chunk_index, x, y);
+}
+
+float HeightMapTerrain::get_vertex_height_by_world_pos(glm::vec2 world_pos) {
+    return chunk_manager.get_vertex_height_by_world_pos(world_pos);
+}
+
 void HeightMapTerrain::draw(const glm::mat4 &mvp) {
     bind();
     size_t draw_command_count = chunk_manager.generate_draw_commands();
@@ -279,7 +295,27 @@ u16 HeightMapChunkManager::get_chunk_id_by_world_pos(glm::vec2 world_pos) const 
     glm::vec<2, i16> chunk_pos;
     chunk_pos.x = world_pos.x / chunk_column_size;
     chunk_pos.y = world_pos.y / chunk_row_size;
-    return 0;
+    return get_chunk_id_by_pos(chunk_pos); 
+}
+
+float HeightMapChunkManager::get_vertex_height_in_chunk_by_pos(u16 chunk_index, int x, int y) {
+    glm::vec<2, u16> offset = chunk_offsets[chunk_index];
+    return noise.GetNoise(
+        float(x + offset.x * (chunk_column_size - 1)),
+        float(y + offset.y * (chunk_row_size - 1))
+    );
+}
+
+float HeightMapChunkManager::get_vertex_height_by_world_pos(glm::vec2 world_pos) {
+    u16 chunk_index = get_chunk_id_by_world_pos(world_pos);
+
+    if (chunk_index == -1) {
+        return 0.0f;
+    }
+
+    int vertex_x = int(world_pos.x) % chunk_column_size;
+    int vertex_y = int(world_pos.y) % chunk_row_size;
+    return get_vertex_height_in_chunk_by_pos(chunk_index, vertex_x, vertex_y);
 }
 
 void HeightMapChunkManager::bind() const {

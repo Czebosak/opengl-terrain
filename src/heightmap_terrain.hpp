@@ -57,6 +57,9 @@ public:
     u16 get_chunk_id_by_pos(glm::vec<2, i16> chunk_pos) const;
     u16 get_chunk_id_by_world_pos(glm::vec2 world_pos) const;
 
+    float get_vertex_height_in_chunk_by_pos(u16 chunk_index, int x, int y);
+    float get_vertex_height_by_world_pos(glm::vec2 world_pos);
+
     void bind() const;
 
     inline const VertexBuffer& get_chunk_buffer() const { return chunk_buffer; }
@@ -78,6 +81,12 @@ private:
     void bind() const;
 public:
     HeightMapTerrain(glm::vec2 size, glm::uvec2 subdivide);
+
+    u16 get_chunk_id_by_pos(glm::vec<2, i16> chunk_pos) const;
+    u16 get_chunk_id_by_world_pos(glm::vec2 world_pos) const;
+
+    float get_vertex_height_in_chunk_by_pos(u16 chunk_index, int x, int y);
+    float get_vertex_height_by_world_pos(glm::vec2 world_pos);
 
     void draw(const glm::mat4& mvp);
 

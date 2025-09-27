@@ -109,11 +109,6 @@ int main(void) {
     cube_shader.set_uniform_v3("u_sun.direction", -1.0f, -1.0f, 0.5f);
     cube_shader.set_uniform_v3("u_sun.diffuse", 1.0f, 1.0f, 0.9f);
 
-    /* Shader plane_shader("/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/shaders/basic.glsl");
-    plane_shader.bind();
-    plane_shader.set_uniform_v4("u_color", 0.7f, 0.7f, 0.7f, 1.0f);
-    Mesh3D plane = Mesh3D::plane(glm::vec2(10.0f, 10.0f), glm::ivec2(10)); */
-
     HeightMapTerrain terrain(glm::vec2(10.0), glm::uvec2(10));
 
     Shader& terrain_shader = terrain.get_shader();
@@ -132,6 +127,11 @@ int main(void) {
         double current_frame = glfwGetTime();
         delta = current_frame - last_frame;
         last_frame = current_frame;
+
+        {
+            float height = terrain.get_vertex_height_by_world_pos(glm::vec2(player_camera.position.x, player_camera.position.z));
+            player_camera.position.y = height + 1.0f;
+        }
 
         player_camera.update(delta, window, mouse_delta);
 
