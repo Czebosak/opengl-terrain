@@ -5,6 +5,7 @@
 
 #include <vertex_buffer_layout.hpp>
 #include <renderer.hpp>
+#include <camera3d.hpp>
 
 #include <indirect_commands.hpp>
 
@@ -19,7 +20,7 @@ HeightMapTerrain::HeightMapTerrain(glm::vec2 size, glm::uvec2 subdivide) : size(
 
     glm::vec2 quad_size = size / glm::vec2(subdivide);
 
-    chunk_manager = std::move(HeightMapChunkManager(1024, subdivide, index_buffer.get_count()));
+    chunk_manager = std::move(HeightMapChunkManager(256*256, subdivide, index_buffer.get_count()));
     vertex_array.bind();
     chunk_manager.bind();
     vertex_array.add_buffer(chunk_manager.get_chunk_buffer(), layout);
@@ -38,8 +39,8 @@ HeightMapTerrain::HeightMapTerrain(glm::vec2 size, glm::uvec2 subdivide) : size(
 
     shader.set_uniform_mat4f("model", glm::mat4(1.0f));
 
-    for (int x = 0; x < 32; x++) {
-        for (int y = 0; y < 32; y++) {
+    for (int x = 0; x < 256; x++) {
+        for (int y = 0; y < 256; y++) {
             chunk_manager.add_chunk(glm::vec<2, u16>(x, y));
         }
     }
@@ -92,9 +93,9 @@ float HeightMapTerrain::get_vertex_height_by_world_pos(glm::vec2 world_pos) {
     return chunk_manager.get_vertex_height_by_world_pos(world_pos);
 }
 
-void HeightMapTerrain::draw(const glm::mat4 &mvp) {
+void HeightMapTerrain::draw(const glm::mat4 &mvp, const Camera3D::Frustum& view_frustum) {
     bind();
-    size_t draw_command_count = chunk_manager.generate_draw_commands();
+    size_t draw_command_count = chunk_manager.generate_draw_commands(view_frustum);
     shader.set_mvp(mvp);
     if (draw_command_count > 0) {
         gl_call(glMultiDrawElementsIndirect(GL_TRIANGLE_STRIP, GL_UNSIGNED_BYTE, nullptr, draw_command_count, 0));
@@ -254,24 +255,62 @@ void HeightMapChunkManager::add_chunk(glm::vec<2, i16> chunk_pos) {
     chunk_buffer.set_data(mesh.vertices.data(), chunk_size, idx * chunk_size);
 }
 
-bool should_draw_chunk(u16 chunk_idx) {
+bool should_draw_chunk(glm::vec2 chunk_world_offset, glm::vec2 chunk_size, const Camera3D::Frustum& view_frustum) {
+    return true;
+    // Chunk corners in XZ (already relative to the given corner)
+    glm::vec2 min = chunk_world_offset;
+    glm::vec2 max = chunk_world_offset + chunk_size;
+
+    // Build 3D positions for testing against frustum planes
+    std::array<glm::vec3, 8> corners = {
+        glm::vec3(min.x, 10.0f, min.y),
+        glm::vec3(min.x, 10.0f, max.y),
+        glm::vec3(max.x, 10.0f, min.y),
+        glm::vec3(max.x, 10.0f, max.y),
+        glm::vec3(min.x, -10.0f, min.y),
+        glm::vec3(min.x, -10.0f, max.y),
+        glm::vec3(max.x, -10.0f, min.y),
+        glm::vec3(max.x, -10.0f, max.y)
+    };
+
+    auto plane_test = [&](const Camera3D::Plane& plane) {
+        // If all corners are outside this plane, the chunk is culled
+        for (auto& c : corners) {
+            float dist = glm::dot(plane.normal, c) - plane.distance;
+            /* if (chunk_world_offset == glm::vec2(0.0f, 0.0f)) {
+                std::cout << dist << std::endl;
+            } */
+            if (dist >= 0.0f) {
+                return true; // at least one corner inside
+            }
+        }
+        return false; // all outside
+    };
+
+    // Only check horizontal planes
+    if (!plane_test(view_frustum.left_face))  return false;
+    if (!plane_test(view_frustum.right_face)) return false;
+    if (!plane_test(view_frustum.near_face))  return false;
+    if (!plane_test(view_frustum.far_face))   return false;
+
     return true;
 }
 
-size_t HeightMapChunkManager::generate_draw_commands() {
+size_t HeightMapChunkManager::generate_draw_commands(const Camera3D::Frustum& view_frustum) {
     std::vector<DrawElementsIndirectCommand> commands;
     commands.reserve(chunk_count);
 
     std::vector<u16> used_chunks = get_used_chunk_indeces();
 
     for (u16 chunk_idx : used_chunks) {
-        if (should_draw_chunk(chunk_idx)) {
+        glm::vec2 world_offset = glm::vec2(chunk_offsets[chunk_idx]) * glm::vec2(chunk_column_size, chunk_row_size);
+        if (should_draw_chunk(world_offset, glm::vec2(chunk_column_size, chunk_row_size), view_frustum)) {
             commands.emplace_back(DrawElementsIndirectCommand {
                 .count = chunk_index_count,
                 .instance_count = 1,
                 .first_index = 0,
                 .base_vertex = chunk_idx * chunk_vertex_count,
-                .base_instance = 0,
+                .base_instance = chunk_idx,
             });
         }
     }

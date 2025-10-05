@@ -11,7 +11,7 @@ void PlayerCamera::update(double delta, GLFWwindow* window, glm::vec2& mouse_del
         mouse_delta = glm::vec2(0.0f);
     }
 
-    glm::vec3 camera_forward = forward();
+    glm::vec3 camera_forward = get_forward();
     glm::vec3 camera_right = glm::cross(up, camera_forward);
 
     glm::vec3 input(0.0f);
@@ -29,7 +29,7 @@ void PlayerCamera::update(double delta, GLFWwindow* window, glm::vec2& mouse_del
     }
 
     if (glm::length(input) > 0.0f) {
-        position += glm::normalize(input) * static_cast<float>(delta) * CAMERA_SPEED;
+        position += glm::normalize(input) * static_cast<float>(delta) * CAMERA_SPEED * 100.0f;
     }
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {

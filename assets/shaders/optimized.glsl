@@ -17,17 +17,6 @@ uniform vec2 quad_size;
 out vec3 normal;
 out vec3 frag_pos;
 
-const float PI = 3.14159265359;
-
-vec3 direction_from_yaw_pitch(float yaw, float pitch) {
-    float cos_pitch = cos(pitch);
-    return vec3(
-        cos_pitch * cos(yaw),   // X
-        sin(pitch),        // Y
-        cos_pitch * sin(yaw)    // Z
-    );
-}
-
 vec2 unpacki16x2(uint packed_data) {
     int x = int(packed_data << 16) >> 16;
     int y = int(packed_data >> 16);
@@ -39,7 +28,7 @@ void main() {
     uint x = vertex_index / chunk_size.x;
     uint y = vertex_index % chunk_size.x;
 
-    uint packed_chunk_offset = offsets[gl_DrawIDARB];
+    uint packed_chunk_offset = offsets[gl_BaseInstanceARB];
     vec2 chunk_offset = quad_size * vec2(chunk_size - uvec2(1, 1)) * unpacki16x2(packed_chunk_offset);
 
     vec3 world_position = vec3(x * quad_size.x, a_height, y * quad_size.y);

@@ -1,9 +1,12 @@
 #pragma once
+
 #include <buffer.hpp>
 #include <vertex_buffer.hpp>
 #include <vertex_array.hpp>
 #include <index_buffer.hpp>
+
 #include <shader.hpp>
+#include <camera3d.hpp>
 
 #include <vector>
 #include <bitset>
@@ -51,7 +54,7 @@ public:
 
     HeightMapChunkManager(int chunk_count, glm::uvec2 subdivide, u32 chunk_index_count);
 
-    size_t generate_draw_commands();
+    size_t generate_draw_commands(const Camera3D::Frustum& camera_frustum);
     void add_chunk(glm::vec<2, i16> chunk_pos);
 
     u16 get_chunk_id_by_pos(glm::vec<2, i16> chunk_pos) const;
@@ -88,7 +91,7 @@ public:
     float get_vertex_height_in_chunk_by_pos(u16 chunk_index, int x, int y);
     float get_vertex_height_by_world_pos(glm::vec2 world_pos);
 
-    void draw(const glm::mat4& mvp);
+    void draw(const glm::mat4& mvp, const Camera3D::Frustum& view_frustum);
 
     inline Shader& get_shader() { return shader; }
 };

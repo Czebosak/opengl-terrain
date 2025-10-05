@@ -15,7 +15,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <miniaudio.h>
+/* #include <miniaudio.h> */
 
 glm::vec2 mouse_delta(0.0f);
 
@@ -75,13 +75,13 @@ int main(void) {
         return -1;
     }
     
-    ma_result result;
+    /* ma_result result;
     ma_engine engine;
     
     result = ma_engine_init(NULL, &engine);
     if (result != MA_SUCCESS) {
         return -1;
-    }
+    } */
 
     glfwSetCursorPosCallback(window, mouse_move_callback);  
 
@@ -93,7 +93,10 @@ int main(void) {
     PlayerCamera player_camera(
         1920, 1080,
         glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::perspective(glm::radians(45.0f), 1920.0f/1080.0f, 0.1f, 1000.0f)
+        glm::perspective(glm::radians(45.0f), 1920.0f/1080.0f, 0.1f, 1000.0f),
+        glm::radians(45.0f),
+        0.1f,
+        1000.0f
     );
 
     glm::mat4 cube_transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -20.0f));
@@ -117,6 +120,7 @@ int main(void) {
     terrain_shader.set_uniform_1f("flashlight.outer_cut_off", glm::cos(glm::radians(12.5f)));
 
     glm::mat4 vp;
+    Camera3D::Frustum view_frustum;
     double delta, last_frame = 0.0f;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -128,17 +132,18 @@ int main(void) {
         delta = current_frame - last_frame;
         last_frame = current_frame;
 
-        {
+        /* {
             float height = terrain.get_vertex_height_by_world_pos(glm::vec2(player_camera.position.x, player_camera.position.z));
             player_camera.position.y = height + 1.0f;
-        }
+        } */
 
         player_camera.update(delta, window, mouse_delta);
 
         vp = player_camera.matrix();
+        view_frustum = player_camera.create_frustum();
 
         {
-            glm::vec3 camera_forward = player_camera.forward();
+            glm::vec3 camera_forward = player_camera.get_forward();
             terrain_shader.set_uniform_v3("flashlight.position", player_camera.position.x, player_camera.position.y, player_camera.position.z);
             terrain_shader.set_uniform_v3("flashlight.direction", camera_forward.x, camera_forward.y, camera_forward.z);
         }
@@ -150,7 +155,7 @@ int main(void) {
         cube.bind();
         gl_call(glDrawElements(GL_TRIANGLES, cube.get_index_buffer().get_count(), GL_UNSIGNED_INT, nullptr));
 
-        terrain.draw(vp);
+        terrain.draw(vp, view_frustum);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -159,7 +164,7 @@ int main(void) {
         glfwPollEvents();
     }
 
-    ma_engine_uninit(&engine);
+    /* ma_engine_uninit(&engine); */
 
     glfwTerminate();
     return 0;
