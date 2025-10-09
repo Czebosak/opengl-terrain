@@ -8,7 +8,10 @@
 
 class PlayerCamera : public Camera3D {
 public:
-    PlayerCamera(u32 width, u32 height, glm::vec3 position, glm::mat4 projection, float fov_y, float near, float far) : Camera3D(width, height, position, projection, fov_y, near, far) {}
+    float yaw;
+    float pitch;
+
+    PlayerCamera(u32 width, u32 height, Transform transform, glm::mat4 projection, float fov_y, float near, float far) : Camera3D(width, height, transform, projection, fov_y, near, far), yaw(glm::radians(0.0f)), pitch(0.0f) {}
 
     void update(double delta, GLFWwindow* window, glm::vec2& mouse_delta);
 };

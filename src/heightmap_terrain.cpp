@@ -11,6 +11,8 @@
 
 const std::string& TERRAIN_SHADER_PATH = "/home/czebosak/Development/cpp/graphics/opengl/terrain/assets/shaders/optimized.glsl";
 
+const int CHUNKS_PER_AXIS = 64;
+
 HeightMapTerrain::HeightMapTerrain(glm::vec2 size, glm::uvec2 subdivide) : size(size), subdivide(subdivide), shader(TERRAIN_SHADER_PATH, "mvp") {
     VertexBufferLayout layout;
     layout.push(GL_FLOAT, 1);
@@ -20,7 +22,7 @@ HeightMapTerrain::HeightMapTerrain(glm::vec2 size, glm::uvec2 subdivide) : size(
 
     glm::vec2 quad_size = size / glm::vec2(subdivide);
 
-    chunk_manager = std::move(HeightMapChunkManager(256*256, subdivide, index_buffer.get_count()));
+    chunk_manager = std::move(HeightMapChunkManager(CHUNKS_PER_AXIS*CHUNKS_PER_AXIS, subdivide, index_buffer.get_count()));
     vertex_array.bind();
     chunk_manager.bind();
     vertex_array.add_buffer(chunk_manager.get_chunk_buffer(), layout);
@@ -39,8 +41,8 @@ HeightMapTerrain::HeightMapTerrain(glm::vec2 size, glm::uvec2 subdivide) : size(
 
     shader.set_uniform_mat4f("model", glm::mat4(1.0f));
 
-    for (int x = 0; x < 256; x++) {
-        for (int y = 0; y < 256; y++) {
+    for (int x = 0; x < CHUNKS_PER_AXIS; x++) {
+        for (int y = 0; y < CHUNKS_PER_AXIS; y++) {
             chunk_manager.add_chunk(glm::vec<2, u16>(x, y));
         }
     }
@@ -256,30 +258,24 @@ void HeightMapChunkManager::add_chunk(glm::vec<2, i16> chunk_pos) {
 }
 
 bool should_draw_chunk(glm::vec2 chunk_world_offset, glm::vec2 chunk_size, const Camera3D::Frustum& view_frustum) {
-    return true;
-    // Chunk corners in XZ (already relative to the given corner)
     glm::vec2 min = chunk_world_offset;
     glm::vec2 max = chunk_world_offset + chunk_size;
 
-    // Build 3D positions for testing against frustum planes
-    std::array<glm::vec3, 8> corners = {
-        glm::vec3(min.x, 10.0f, min.y),
-        glm::vec3(min.x, 10.0f, max.y),
-        glm::vec3(max.x, 10.0f, min.y),
-        glm::vec3(max.x, 10.0f, max.y),
-        glm::vec3(min.x, -10.0f, min.y),
+    std::array<glm::vec3, 4> corners = {
+        glm::vec3(min.x, 0.0f, min.y),
+        glm::vec3(min.x, 0.0f, max.y),
+        glm::vec3(max.x, 0.0f, min.y),
+        glm::vec3(max.x, 0.0f, max.y),
+        /* glm::vec3(min.x, -10.0f, min.y),
         glm::vec3(min.x, -10.0f, max.y),
         glm::vec3(max.x, -10.0f, min.y),
-        glm::vec3(max.x, -10.0f, max.y)
+        glm::vec3(max.x, -10.0f, max.y) */
     };
 
     auto plane_test = [&](const Camera3D::Plane& plane) {
         // If all corners are outside this plane, the chunk is culled
         for (auto& c : corners) {
             float dist = glm::dot(plane.normal, c) - plane.distance;
-            /* if (chunk_world_offset == glm::vec2(0.0f, 0.0f)) {
-                std::cout << dist << std::endl;
-            } */
             if (dist >= 0.0f) {
                 return true; // at least one corner inside
             }
@@ -287,7 +283,6 @@ bool should_draw_chunk(glm::vec2 chunk_world_offset, glm::vec2 chunk_size, const
         return false; // all outside
     };
 
-    // Only check horizontal planes
     if (!plane_test(view_frustum.left_face))  return false;
     if (!plane_test(view_frustum.right_face)) return false;
     if (!plane_test(view_frustum.near_face))  return false;
