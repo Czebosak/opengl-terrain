@@ -128,20 +128,14 @@ int main(void) {
         gl_call(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
         gl_call(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        {
-            glm::vec3 f = player_camera.transform.get_forward();
-            std::cout << f.x << ", " << f.y << ", " << f.z << std::endl;
-            std::cout << player_camera.pitch << ", " << player_camera.yaw << std::endl;
-        }
-
         double current_frame = glfwGetTime();
         delta = current_frame - last_frame;
         last_frame = current_frame;
 
-        /* {
-            float height = terrain.get_vertex_height_by_world_pos(glm::vec2(player_camera.position.x, player_camera.position.z));
-            player_camera.position.y = height + 1.0f;
-        } */
+        {
+            float height = terrain.get_vertex_height_by_world_pos(glm::vec2(player_camera.transform.translation.x, player_camera.transform.translation.z));
+            player_camera.transform.translation.y = height + 1.0f;
+        }
 
         player_camera.update(delta, window, mouse_delta);
 

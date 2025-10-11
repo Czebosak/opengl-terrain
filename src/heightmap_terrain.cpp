@@ -341,15 +341,7 @@ float HeightMapChunkManager::get_vertex_height_in_chunk_by_pos(u16 chunk_index, 
 }
 
 float HeightMapChunkManager::get_vertex_height_by_world_pos(glm::vec2 world_pos) {
-    u16 chunk_index = get_chunk_id_by_world_pos(world_pos);
-
-    if (chunk_index == -1) {
-        return 0.0f;
-    }
-
-    int vertex_x = int(world_pos.x) % chunk_column_size;
-    int vertex_y = int(world_pos.y) % chunk_row_size;
-    return get_vertex_height_in_chunk_by_pos(chunk_index, vertex_x, vertex_y);
+    return noise.GetNoise(world_pos.x, world_pos.y);
 }
 
 void HeightMapChunkManager::bind() const {

@@ -62,6 +62,7 @@ public:
 
     float get_vertex_height_in_chunk_by_pos(u16 chunk_index, int x, int y);
     float get_vertex_height_by_world_pos(glm::vec2 world_pos);
+    float get_interpolated_vertex_height(glm::vec2 world_pos);
 
     void bind() const;
 
